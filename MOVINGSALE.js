@@ -17,42 +17,8 @@
 
 // a bunch of boring code:
 
-// master map of rooms
-var room = {
-	"x0y0": null,
-	"x0y1": {
-		desc: "this is room #01. welcome!",
-		items: ["puppy", "machete", "urn of ashes"]
-	},
-	"x0y2": "this is room #02. welcome!", 
-	"x0y3": null, 
-	"x0y4": null,
-	"x0y5": "this is room #05. welcome!",
-	"x0y6": "this is room #06. welcome!", 
-	"x0y7": "this is room #07. welcome!",
-	"x1y0": "this is room #10. welcome!", 
-	"x1y1": "this is room #11. welcome!", 
-	"x1y2": "this is room #12. welcome!", 
-	"x1y3": "this is room #13. welcome!", 
-	"x1y4": "this is room #14. welcome!",
-	"x1y5": "this is room #15. welcome!",
-	"x1y6": "this is room #16. welcome!", 
-	"x1y7": "this is room #17. welcome!",
-	"x2y0": null, 
-	"x2y1": "this is room #21. welcome!", 
-	"x2y2": "this is room #22. welcome!", 
-	"x2y3": null, 
-	"x2y4": null,
-	"x2y5": "this is room #25. welcome!",
-	"x2y6": "this is room #26. welcome!", 
-	"x2y7": "this is room #27. welcome!"
-};
-
-var zone = {
-	"x0y0":       null, "x0y1": room["x0y1"], "x0y2": room["x0y2"], "x0y3":       null, "x0y4":       null, "x0y5": room["x0y5"], "x0y6": room["x0y6"], "x0y7": room["x0y7"],
-	"x1y0": room["x1y0"], "x1y1": room["x1y1"], "x1y2": room["x1y2"], "x1y3": room["x1y3"], "x1y4": room["x1y4"], "x1y5": room["x1y5"], "x1y6": room["x1y6"], "x1y7": room["x1y7"],
-	"x2y0":       null, "x2y1": room["x2y1"], "x2y2": room["x2y2"], "x2y3":       null, "x2y4":       null, "x2y5": room["x2y5"], "x2y6": room["x2y6"], "x2y7": room["x2y7"]
-};
+// global debug switch
+window.debug = true; 
 
 
 // the player
@@ -62,12 +28,12 @@ var player = {
 
 	// looks around the room
 	look: function() { 
-		writeLine(zone["x" + this.currentX + "y" + this.currentY]);
+		writeLine(room["x" + this.currentX + "y" + this.currentY]);
 	},
 
 	// where the player is
 	canMoveToPosition: function(x, y) { // is the player even????
-		if (typeof zone["x" + x + "y" + y] != undefined && zone["x" + x + "y" + y] != null) {
+		if (typeof room["x" + x + "y" + y] != undefined && room["x" + x + "y" + y] != null) {
 			return true; 
 		} else {
 			return false;
@@ -100,7 +66,6 @@ var player = {
 
 
 // outputting text to #terminal 
-
 function writeLine(words) {
 	var terminal = document.getElementById("terminal");
 
@@ -114,55 +79,44 @@ function panic() {
 	alert("AAAAAAAAAAAAAAAAAAAAA / AAAAAAAAAAAAAAAAAAAAAAAAA / AAAAAAAAAAAAAAAAAAAAA / AAAAAAAAAAAAAAAAAAAAA");
 };
 
+document.getElementById("both-input-fields").addEventListener("submit", submitAction, false);
 
-function listenForInput() {
-	var input = document.getElementById("user-input-field")
-	  , inputVal;
+function submitAction(event) {
+	var input = document.getElementById("user-input-field") 
+		, inputVal;
+	inputVal = input.value;
 
-	input.onkeypress = function(event) {
-		event = event || window.event;
-		console.log(event);
-
-		if (event.keyCode === 13) { // enter
-			console.log(input.value);
-			
-			inputVal = input.value;
-
-			switch(inputVal) {
-				case "n":
-				case "north":
-					player.setPosition(player.currentX, player.currentY + 1);
-					break;
-				case "s":
-				case "south":
-					player.setPosition(player.currentX, player.currentY - 1);
-					break;
-				case "w":
-				case "west":
-					player.setPosition(player.currentX - 1, player.currentY);
-					break;
-				case "e":
-				case "east":
-					player.setPosition(player.currentX + 1, player.currentY);
-					break;
-				case "i":
-				case "inventory":
-					player.displayInv();
-					break;
-				default:
-					writeLine("I don't understand your moonspeak....");
-			}
-
-			input.select();
+	var actions = {
+		n: function() {
+			player.setPosition(player.currentX, player.currentY + 1);
+		},
+		s: function() {
+			player.setPosition(player.currentX, player.currentY - 1);
+		},
+		w: function() {
+			player.setPosition(player.currentX - 1, player.currentY);
+		},
+		e: function() {
+			player.setPosition(player.currentX + 1, player.currentY);
+		},
+		i: function() {
+			player.displayInv();
+		},
+		default: function() {
+			writeLine("I don't understand your moonspeak....");
 		}
 	}
 
+	event.preventDefault(); // this has to go after the actions object otherwise we stop doing things 
+
+	(actions[inputVal] || actions.default)()
+
+	input.select(); // makes it easy to re-enter
 };
 
 
-(function gameStart() {
+(function () {
 	player.look();
-	listenForInput();
 })();
 
 
