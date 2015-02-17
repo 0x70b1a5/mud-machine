@@ -20,21 +20,24 @@
 // global debug switch
 window.debug = true; 
 
+var isGameIntro = true; // if intro, then forbids player from submitting non-integers into the world-gen function.
 
 // the player
 var player = {
-	currentX: 1,
-	currentY: 1,
+	currentX: 0,
+	currentY: 0,
 
-	// looks around the room
+	// looks around the room (actually just reads the description)
 	look: function() { 
-		writeLine(room["x" + this.currentX + "y" + this.currentY]);
+		writeLine(blueprint[this.currentX][this.currentY].desc);
 	},
 
 	// where the player is
 	canMoveToPosition: function(x, y) { // is the player even????
-		if (typeof room["x" + x + "y" + y] != undefined && room["x" + x + "y" + y] != null) {
-			return true; 
+		if (!!blueprint[x][y]) {
+			if (debug) console.log("now in room: " + blueprint[x][y]); else {};
+			if (!blueprint[x][y].isAWall)
+				return true; else return false;
 		} else {
 			return false;
 		} 
@@ -44,7 +47,7 @@ var player = {
 			this.currentX = x;
 			this.currentY = y;
 
-			this.look();
+			this.look(); // automagically looks around the room whenever you move
 		} else {
 			writeLine("You hit a wall.");
 		}
@@ -76,10 +79,10 @@ function writeLine(words) {
 
 // the only reaction i will ever need
 function panic() {
-	alert("AAAAAAAAAAAAAAAAAAAAA / AAAAAAAAAAAAAAAAAAAAAAAAA / AAAAAAAAAAAAAAAAAAAAA / AAAAAAAAAAAAAAAAAAAAA");
+	writeLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 };
 
-document.getElementById("both-input-fields").addEventListener("submit", submitAction, false);
+document.getElementById("input-zone").addEventListener("submit", submitAction, false);
 
 function submitAction(event) {
 	var input = document.getElementById("user-input-field") 
@@ -102,34 +105,68 @@ function submitAction(event) {
 		i: function() {
 			player.displayInv();
 		},
+		p: function() {
+			panic();
+		},
 		default: function() {
 			writeLine("I don't understand your moonspeak....");
 		}
 	}
 
-	event.preventDefault(); // this has to go after the actions object otherwise we stop doing things 
+	event.preventDefault(); // this has to go after the actions object otherwise it breaks 
 
-	(actions[inputVal] || actions.default)()
+	if (!!isGameIntro) {
+		var isInt = function(i) {
+			return !isNaN(i) && 
+	        parseInt(Number(i)) == i && 
+	        !isNaN(parseInt(i, 10));
+		};
 
-	input.select(); // makes it easy to re-enter
+		if (!!isInt(inputVal)) { // to-do: figure out how to check only the first input of the game... 
+			if (debug) {console.log("inputVal =" + inputVal)} else {};
+			writeLine("Generating store of size = " + inputVal + " meters...")
+			var blueprintX = inputVal;
+			var blueprintY = blueprintX;
+			drawBlueprint(blueprintX, blueprintY); // i know it's redundant having two identical arguments, but it's a pain in the ass asking for two different values
+		} else {
+			var blueprintX = Math.floor(100 * Math.random() + 1); // just to fuck with them
+			var blueprintY = blueprintX;
+			writeLine("Invalid size. ('" + inputVal + "') Autogenerating store...")
+			drawBlueprint(blueprintX, blueprintY);
+		} isGameIntro = false;
+		gameIntro();
+	} else (actions[inputVal] || actions.default)();
+
+	input.select(); // makes it easy to re-enter text
 };
 
+function gameIntro() {
+	var checkAlleyLength = function() { // why of course i need a function for this
+		if (blueprint.length < 10)
+			return "stumpy";
+		else if (blueprint.length < 20)
+			return "gloomy";
+		else if (blueprint.length < 30)
+			return "unsettling";
+		else if (blueprint.length < 50)
+			return "haunting";
+		else return "improbably gargantuan";
+	};
 
-(function () {
-	player.look();
+	writeLine(
+		"<br> You are standing outside of a store. <p>"
+		+
+		"The store is only allegedly a store, because you can't see any indication that the dubious building slouching in front of you has ever been anything but an empty place for dreams to die. Then again, you could say that about this entire neighborhood, but that's a story for another game. Anyway, the internet says it's a store, so a store it must be. <p>"
+		+
+		"<br>'MOVING SALE', the tacky plastic tarp shouts at you. <p>" +
+		"'Better than a garage sale, it's the whole house!'<p>"
+		+
+		"<br>You aren't sure what to make of that.<p>"
+		+
+		"The storefront is about " + blueprint.length + " meters wide, with a low, cramped door accessible only through the " + checkAlleyLength() + " side alley."
+	);
+};
+
+(function buildWorld() {
+	writeLine("Enter a store size, in meters:");
 })();
-
-
-// "You are standing outside of a store. /
-// /
-// The store is only allegedly a store, because you can't see any /
-// indication that the dubious building slouching in front of you /
-// has ever been anything but an empty place for dreams to die. /
-// Then again, you could say that about this entire neighborhood, /
-// but that's a terminal for another game. Anyway, the internet says /
-// it's a store, so a store it must be. /
-// / 
-// 'MOVING SALE', the tacky plastic tarp shouts at you. /
-// 'Better than a garage sale, it's the whole house!' /
-// /
-// You aren't sure what to make of that."

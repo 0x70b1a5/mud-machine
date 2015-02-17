@@ -80,24 +80,29 @@ h1 {
 	margin-bottom:7px;
 	word-break: break-word;
 	overflow: auto;
+	padding: 5px;
 }
 #user-input-field {
 	border: 1px solid white;
-	padding: 3px;
+	padding: 5px;
 	display: inline-block;
 	background-color: black;
-	width: calc(100% - 26px);
+	width: calc(100% - 40px);
 	color: white;
 	font-family: 'Courier New', sans-serif;
+	margin-right: -5px;
 }
 #submit {
-	background-color: #0f1a0f;
-	border: none;
+	background-color: black;
+	width: 35px;
+	height: 28px;
+	border: 1px solid white;
 	color: white;
 	font-family: 'Courier New', sans-serif;
-	padding: 0;
-	margin: 0;
+	padding: 1px;
+	margin-right: -34px;
+	display: inline;
 }
-#input {
+#command-line {
 	border: none;
 }
