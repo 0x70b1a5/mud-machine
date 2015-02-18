@@ -1,0 +1,108 @@
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* ------------------------------------------------- */
+
+html {
+	background-color: #0f1a0f;
+	width: 100%;
+	height: 100%;
+	font-family: 'Courier New', sans-serif;
+	color: white;
+}
+body {
+	width: 100%;
+	height: 100%;
+}
+#container {
+	width: 60vw;
+	height: 100%;
+	margin: 0 auto;
+}
+h1 {
+	font-size:3em;
+	padding:20px;
+}
+#terminal {
+	display: inline-block;
+	width: 100%;
+	height: 60vh;
+	border: 1px solid white;
+	font-family: 'Courier New', sans-serif;
+	background-color: black;
+	margin-bottom:7px;
+	word-break: break-word;
+	overflow: auto;
+	padding: 5px;
+}
+#user-input-field {
+	border: 1px solid white;
+	padding: 5px;
+	display: inline-block;
+	background-color: black;
+	width: calc(100% - 40px);
+	color: white;
+	font-family: 'Courier New', sans-serif;
+	margin-right: -5px;
+}
+#submit {
+	background-color: black;
+	width: 35px;
+	height: 28px;
+	border: 1px solid white;
+	color: white;
+	font-family: 'Courier New', sans-serif;
+	padding: 1px;
+	margin-right: -34px;
+	display: inline;
+}
+#command-line {
+	border: none;
+}
