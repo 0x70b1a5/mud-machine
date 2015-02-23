@@ -1,46 +1,44 @@
 // // master map of rooms
 // var room = {
-// 	"x0y0": null,
 // 	"x0y1": {
 // 		desc: "this is room #01. welcome!",
 // 		items: ["puppy", "machete", "urn of ashes"]
-// 	},
-// 	"x0y2": "this is room #02. welcome!", 
-// 	"x0y3": null, 
-// 	"x0y4": null,
-// 	"x0y5": "this is room #05. welcome!",
-// 	"x0y6": "this is room #06. welcome!", 
-// 	"x0y7": "this is room #07. welcome!",
-// 	"x1y0": "this is room #10. welcome!", 
-// 	"x1y1": "this is room #11. welcome!", 
-// 	"x1y2": "this is room #12. welcome!", 
-// 	"x1y3": "this is room #13. welcome!", 
-// 	"x1y4": "this is room #14. welcome!",
-// 	"x1y5": "this is room #15. welcome!",
-// 	"x1y6": "this is room #16. welcome!", 
-// 	"x1y7": "this is room #17. welcome!",
-// 	"x2y0": null, 
-// 	"x2y1": "this is room #21. welcome!", 
-// 	"x2y2": "this is room #22. welcome!", 
-// 	"x2y3": null, 
-// 	"x2y4": null,
-// 	"x2y5": "this is room #25. welcome!",
-// 	"x2y6": "this is room #26. welcome!", 
-// 	"x2y7": "this is room #27. welcome!"
+//  }
 // };
 
-// builds a room array of arbitrary size
-
+// starting empty blueprint
 window.blueprint = [];
 
+// makes a complex store array of arbitrary size (note: currently only for square stores)
 var drawBlueprint = function(xSize, ySize) {
 	for (var x = 0; x < xSize; x++) {
 		window.blueprint[x] = [];
 		for (var y = 0; y < ySize; y++) {
 			window.blueprint[x][y] = new room(); // gives each room the default attributes 
-			blueprint[x][y].desc += "I live at position #" + x + y + ".";
+			blueprint[x][y].desc += "#"+x+y;
+			blueprint[x][y].x = x; blueprint[x][y].y = y;
+			populateItems(blueprint[x][y]);
+			if (!!Math.floor(5*Math.random())) 
+				blueprint[x][y].isAWall = false; else {};
 		}
-	}
+	};
 	return window.blueprint;
 	if (debug) console.log(window.blueprint); else {}
+};
+
+var populateItems = function(room) {
+	room.items = [];
+	if (!!Math.floor(Math.random()*10)) {
+		for (i = 0; i <= Math.floor(Math.random()*10); i++) // 90% chance to add 1-10 items to a room
+			var totalNumberItems = 0;
+			var count = 0;
+			for (var k in itemLibrary) if (itemLibrary.hasOwnProperty(k)) ++count; // since there's no clean way to find the number of properties in an object, 
+																				   // this is how we determine how many items are in the list of all possible items... >_< 
+
+			var randomItem = itemLibrary[Math.floor(Math.random()*count)];
+			if (!randomItem.isInARoom)	{ // won't add unique items to rooms if they've already been pushed /// QUIT DOING THAT STUFF WITH THE NO BRACKETS
+				room.items.push(randomItem); // randomly adds i number of items from from itemLibrary
+				randomItem.isInARoom = true;
+			} else {};
+	} else {}; 
 };
