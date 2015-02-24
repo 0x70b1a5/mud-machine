@@ -13,7 +13,7 @@
 // nerdy,
 // and gullible,
 // all of which reasons combined are probably why you're here now, wondering when the game will start.
-// fear not, for soon, you'll be asking when it starts.... but when it ends!..... 
+// fear not, for soon, you won't be asking when it starts.... but when it ends!..... 
 // ~~~ ooooh ~~~
 
 // a bunch of boring code:
@@ -29,9 +29,7 @@ window.player = {
 	currentY: 0,
 
 	// looks around the room (actually just reads the description)
-	look: function() { 
-		currentRoom = blueprint[this.currentX][this.currentY]; 
-		writeLine(currentRoom.desc);
+	look: function() {
 		thisRoomsItems = [];
 		for (i = 0; i < currentRoom.items.length; i++) {
 			thisRoomsItems.push(currentRoom.items[i]);
@@ -41,7 +39,7 @@ window.player = {
 			writeLine("And on the floor, there is: <br>");
 			for (i = 0; i < currentRoom.items.length; i++) 
 				writeLine(thisRoomsItems[i].desc);
-		} else writeLine("The moldy floor is cluttered with trash.")
+		} else writeLine("The moldy floor is cluttered with worthless trash.")
 	},
 
 	// where the player is
@@ -54,12 +52,16 @@ window.player = {
 			return false;
 		} 
 	},
+	viewRoom: function() {
+		currentRoom = blueprint[this.currentX][this.currentY]; 
+		writeLine(currentRoom.desc);
+	},
 	setPosition: function(x, y) { 
 		if (!!this.canMoveToPosition(x, y)) {
 			this.currentX = x;
 			this.currentY = y;
 			if (debug) console.log("now in room #" + blueprint[x][y].x + blueprint[x][y].y); else {};
-			this.look(); // automagically looks around the room whenever you move
+			this.viewRoom(); // automagically looks around the room whenever you move .// took
 		} else {
 			writeLine("You hit a wall.");
 		}
@@ -75,10 +77,6 @@ window.player = {
 		this.inventory.map(function(item) {
 			writeLine("#" + (player.inventory.indexOf(item) + 1) + ". " + item.desc);
 		})
-	},
-	die: function() { 
-		writeLine("It ends painfully.");
-		panic();
 	},
 
 	// the only reaction i will ever need
@@ -115,6 +113,13 @@ window.player = {
 			player.holding = item;
 			writeLine("You pull out the "+item.name+". You hope it'll hit harder than anything else you might meet here.");
 		};
+	},
+
+	useItem: function(item) {
+		item.use[0][1]();				// yeah i know it's useless. will leave this open for another solution later or something?
+	},
+	kill: function() {
+		// add combat stuff later
 	}
 };
 
@@ -164,6 +169,7 @@ window.onload = (function powerOn() {
 	var power = true;
 	window.takinAnItem = false;
 	window.usinAnItem = false;
+	window.combineItem = false;
 
 	if (!!power) {
 		writeLine("Welcome to Moving Sale, a game of horror, adventure, and escape.<p>" 
@@ -208,6 +214,7 @@ window.onload = (function powerOn() {
 						+ "I: check inventory<p>"
 						+ "T: take an item<p>"
 						+ "U: use item<p>"
+						+ "C: combine items<p>"
 						+ "L: look around...<p>")
 				},
 				d: function() {
@@ -217,24 +224,41 @@ window.onload = (function powerOn() {
 					player.look();
 				},
 				t: function() {
-					writeLine("Take which # item?");
-					takinAnItem = true;
+					if (currentRoom.items.length > 0) {
+						writeLine("Take which # item?");
+						takinAnItem = true;
+					} else {
+						writeLine("There's nothing of value to take in this room.");
+					}
 				},
 				u: function() {
 					writeLine("Use which # item?");
 					player.displayInv();
 					usinAnItem = true;
 				},
+				c: function() {
+					writeLine("Combine which items? (ex: 1,2)");
+					player.displayInv();
+					writeLine("#"+(player.inventory.length+2)+". yourself");
+					combineItem = true;
+				},
 				default: function() {
 					writeLine("I don't understand your moonspeak....");
 				}
-			}
+			};
 
 			event.preventDefault(); // this has to go after the actions object otherwise it breaks 
 
 // below this massive line is where the game actualy interprets inputs. all code above this line is not interpretation.
 // remember this for later before you spend 100,000 hours trying to figure your your stupid input parsing l0l
 // ====================================================================================================================
+			
+			var parseItem = function(input, container) {
+				if (debug) {console.log("(parsing an item) i'm trying to interpret " + input)} else {};
+				if (!!parseInt(input) && container[input]) {
+					return container[input];
+				} else {return "item not found in "+container+"!"};
+			};
 
 			if (!!isGameIntro) {
 				if (!!isInt(inputVal)) { // to-do: figure out how to check only the first input of the game... 
@@ -242,7 +266,7 @@ window.onload = (function powerOn() {
 					writeLine("Generating store of size = " + inputVal + " meters...<p>" + "<p> -------------------------------------")
 					var blueprintX = inputVal;
 					var blueprintY = blueprintX;
-					drawBlueprint(blueprintX, blueprintY); // i know it's redundant having two identical arguments, but it's a pain in the ass asking for two different values
+					drawBlueprint(blueprintX, blueprintY); // i know it's redundant having only square stores, but it's a pain in the ass asking for two different side lenghs
 				} else {
 					var blueprintX = Math.floor(100 * Math.random() + 20); // just to fuck with them
 					var blueprintY = blueprintX;
@@ -251,25 +275,22 @@ window.onload = (function powerOn() {
 				} isGameIntro = false;
 				gameIntro();
 			} else if (!!takinAnItem) { // are they trying to pick up an item? should only happen if they press t.
-				var itemNumbah = inputVal;
-				if (debug) {console.log("(taking an item) i'm trying to interpret " + itemNumbah)} else {};
-
 				var takeDatItem = function() {	
-					if (!!parseInt(itemNumbah)) {
+					if (parseItem((inputVal), thisRoomsItems)) {
 						// todo in the morning: take the ITEM from itemLibrary, not just the string from item.desc...
 						// "done": now finishing up and testing... 
-						var itemInQuestion = thisRoomsItems[itemNumbah - 1]; 
+						var itemInQuestion = thisRoomsItems[inputVal - 1]; 
 						if (debug) {console.log("successfully parsed " + itemInQuestion.name)} else {};
 						
 						if (!!itemInQuestion) {
 							player.inventory.push(itemInQuestion);
-							blueprint[player.currentX][player.currentY].items.splice(itemNumbah - 1, 1);
+							blueprint[player.currentX][player.currentY].items.splice(inputVal - 1, 1); // we have to take it from the room in the blueprint, not "thisRoomsItems", which is actually just a copy of the blueprint...
 							thisRoomsItems = blueprint[player.currentX][player.currentY].items;
 							takinAnItem = false;
 							if (debug) {console.log("just pushed " + itemInQuestion.name)} else {};
 							writeLine("You pick up the " + itemInQuestion.name + " and place it in your inventory.");
-						} else writeLine("Enter a valid item number.");
-							// figure out how to parse invalid inputs.... also add a breaking mechanism!
+						} else writeLine("Try again.");
+							// figure out how to parse invalid inputs.... also add a breaking mechanism! 
 							// writeLine("You fumble, and drop the "+itemInQuestion.name+" on the floor. You think you can see a fracture...");
 							// itemInQuestion.condition--;
 					} else {
@@ -278,23 +299,42 @@ window.onload = (function powerOn() {
 					};
 				}; takeDatItem(); // ALWAYS REMEMBER TO CALL FUNCTIONS AFTER YOU DEFINE THEM. 
 			} else if (!!usinAnItem) {
-				var itemNumbah = inputVal;
-				if (debug) {console.log("(using an item) i'm trying to interpret " + itemNumbah)} else {};
-				var itemInQuestion = player.inventory[itemNumbah - 1];
-				if(!!isInt(itemNumbah) && !!itemInQuestion) {
+				if (parseItem(inputVal, player.inventory)) {
+					var itemInQuestion = player.inventory[inputVal - 1];
 					if (debug) {console.log("i can now use the " + itemInQuestion.name)} else {};
 					if (itemInQuestion.condition === 0) {
 						writeLine("The fragile "+itemInQuestion.name+" snaps in half.")
-						q = player.inventory.indexOf(itemInQuestion); // remember how to do this: for arrays specifically.... 
-						player.inventory.splice(q, 1);
+						q = player.inventory.indexOf(itemInQuestion); // remember how to do this, remove a single element: for arrays specifically.... not objects
+						player.inventory.splice(q, 1); // starting at q, splice 1 item
 					} else {
 						itemInQuestion.condition--;
-						itemInQuestion.use();
+						player.useItem(itemInQuestion);
 					};
 				} else {
 					writeLine("You aren't holding that.");
 				}; 
 				usinAnItem = false;
+			} else if (!!combineItem) {		// kind of complicated, but: this thing crawls through all items, 
+											// finds its .use array, searches the sub-arrays for other
+											// items that can be combined, and runs the function paired with
+											// that other item.
+				inputVal.toString(); 
+				var item1 = inputVal.slice(0,1) - 1;		// subtract 1 because the inventory numbering starts at 1
+				var item2 = inputVal.slice(2,1) - 1;
+				if (parseItem(item1, player.inventory) && parseItem(item2, player.inventory)) { // this is about to get really ugly. i apologize in advance
+					if (typeof(player.inventory[item1].use) == "object") {
+						(function() {
+							for (i = 0; i < player.inventory[item1].use.length; i++) {
+								if (player.inventory[item1].use[i][0] === item2.name) {
+									return player.inventory[item1].use[i][1](); 
+								} else {};
+							};
+						})(); 
+					} else {
+						writeLine("Nothing happens.");
+					};
+				};
+				combineItem = false;
 			} else (actions[inputVal] || actions.default)();
 
 			input.select(); // makes it easy to re-enter text
@@ -320,8 +360,10 @@ window.itemLibrary = {
 			name: "plank",
 		// its in-game description
 			desc: "A rotted wooden plank, run through with a jagged old nail.",
-		// items this can interact with (format: [otherItem, action function]) // don't gave inter-item dunctionality yet but we're getting there...............
-			use: function() {player.panic();},
+		// items this can interact with (format: [otherItem, action function]) // don't have inter-item dunctionality yet but we're getting there...............
+			use: 	[
+						["", function() {player.panic();}]
+					],
 		// uses left before breaking
 			condition: 10,
 		// can be equipped
@@ -335,7 +377,9 @@ window.itemLibrary = {
 	1: {
 		name: "dead rat",
 		desc: "A crisply mummified rat.",
-		use: function() {writeLine("You pinch your nose, and force the dusty, empty-eyed rat inside your mouth. It tastes of hideous death. Faint with disgust, you keel over, and everything fades...");},
+		use: 	[ 
+					[player, function() {writeLine("You pinch your nose, and force the dusty, empty-eyed rat inside your mouth. It tastes of hideous death. Faint with disgust, you keel over, and everything fades...");}], 
+				],
 		condition: 1,
 		weapon: false,
 		damage: 0,
@@ -344,7 +388,9 @@ window.itemLibrary = {
 	2: {
 		name: "wits",
 		desc: "your wits",
-		use: [["your hopes", "function() {player.panic();}"], ["your dreams", "sleep"]],
+		use: 	[
+					["your hopes", function() {player.panic();}], ["your dreams", "sleep"]
+				],
 		condition: 5,
 		weapon: true,
 		damage: 5,
@@ -353,7 +399,9 @@ window.itemLibrary = {
 	3: {
 		name: "hopes",
 		desc: "your hopes",
-		use: [["your wits", "function() {player.panic();}"], ["your dreams", "die"]],
+		use: 	[
+					["your wits", function() {player.panic();}], ["your dreams", "die"]
+				],
 		condition: -1,
 		weapon: false,
 		damage: 0,
@@ -362,7 +410,9 @@ window.itemLibrary = {
 	4: {
 		name: "dreams",
 		desc: "your dreams",
-		use: [["your wits", "sleep"], ["your hopes", "die"]],
+		use: 	[
+					["your wits", "sleep"], ["your hopes", "die"]
+				],
 		condition: -1,
 		weapon: false,
 		damage: 0,
@@ -371,7 +421,9 @@ window.itemLibrary = {
 	5: {
 		name: "rotten apple",
 		desc: "A pile of flies, swarming on what might be an apple.",
-		use: function() {writeLine("No. Ew.");},
+		use: 	[
+					["", function() {writeLine("No. Ew.");}]
+				],
 		condition: 1,
 		weapon: false,
 		damage: 0,
@@ -380,7 +432,9 @@ window.itemLibrary = {
 	6: {
 		name: "rusty pipe",
 		desc: "A segment of old pipe.",
-		use: function() {player.equip(this);},
+		use: 	[
+					["", function() {player.equip(this);},]
+				],
 		condition: 50,
 		weapon: true,
 		damage: 5,
@@ -389,10 +443,16 @@ window.itemLibrary = {
 	7: {
 		name: "dirty doll",
 		desc: "A worn-down doll with a cracked button eye. Seems to be missing a mouth.",
-		use: [],
+		use: 	[ 
+					[player, player.panic], 
+					[this[1], player.kill] 
+				],
 		condition: 5,
 		weapon: false,
 		damage: 0,
 		isInARoom: false
+	},
+	8: {
+
 	}
 };
