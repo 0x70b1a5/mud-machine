@@ -18,6 +18,15 @@
 
 // a bunch of boring code:
 
+// TO DO LIST!
+// ===========
+// [] 1. Differentiate between item DEFAULT actions, and item combine-with-player actions!
+// [] 2. Make more items!
+// [] 3. Make unique rooms!
+// [] 4. More room attributes!
+// [] 5. Player bleeding condition! 
+// [] 6. & other conditions?
+
 // global debug switch
 window.debug = true; 
 
@@ -28,8 +37,11 @@ window.player = {
 	currentX: 0,
 	currentY: 0,
 
-	// looks around the room (actually just reads the description)
+	// looks around the room
 	look: function() {
+		currentRoom = blueprint[this.currentX][this.currentY]; 
+		writeLine(currentRoom.desc);
+
 		thisRoomsItems = [];
 		for (i = 0; i < currentRoom.items.length; i++) {
 			thisRoomsItems.push(currentRoom.items[i]);
@@ -52,16 +64,13 @@ window.player = {
 			return false;
 		} 
 	},
-	viewRoom: function() {
-		currentRoom = blueprint[this.currentX][this.currentY]; 
-		writeLine(currentRoom.desc);
-	},
+
 	setPosition: function(x, y) { 
 		if (!!this.canMoveToPosition(x, y)) {
 			this.currentX = x;
 			this.currentY = y;
 			if (debug) console.log("now in room #" + blueprint[x][y].x + blueprint[x][y].y); else {};
-			this.viewRoom(); // automagically looks around the room whenever you move .// took
+			this.look(); // automagically looks around the room whenever you move
 		} else {
 			writeLine("You hit a wall.");
 		}
@@ -75,7 +84,7 @@ window.player = {
 		writeLine("Your inventory:");
 
 		this.inventory.map(function(item) {
-			writeLine("#" + (player.inventory.indexOf(item) + 1) + ". " + item.desc);
+			writeLine("#" + (player.inventory.indexOf(item) + 1) + ". " + item.name);
 		})
 	},
 
@@ -117,11 +126,39 @@ window.player = {
 
 	useItem: function(item) {
 		item.use[0][1]();				// yeah i know it's useless. will leave this open for another solution later or something?
+										// update: this is no longer useless. item.use[0][1] will be the default use, but i can 
+										//			use item["player"][1] to differentiate between default-use and combine-with-player
 	},
-	kill: function() {
+
+	kill: function(enemy, weapon) {
 		// add combat stuff later
-	}
+		// or now, that's fine too
+
+		if (enemy && weapon && weapon.weapon === true) {
+			writeLine("You land a ferocious blow with the "+weapon.name+" and the "+enemy.name+" collapses, dead.");
+			// okay it's basic. add enemies.
+
+		} else if (enemy) {
+			writeLine("You destroy the "+enemy.name+" with savage hands.");
+		} else {
+			writeLine("Who are you trying to kill? Yourself?...");
+		}
+	},
+
+	bleeding: false,
+
+	vitality: 10
 };
+
+setInterval(function() {
+	if (player.bleeding === true) {
+		player.vitality -= 0.1;
+		writeLine("Blood continues to leak out of your wound...");
+		if (player.vitality < 4) {
+			writeLine("The room swims around you, and your vision wavers...");
+		} else {};
+	} else {};
+}, 10000);
 
 
 // outputting text to #terminal 
@@ -226,6 +263,8 @@ window.onload = (function powerOn() {
 				t: function() {
 					if (currentRoom.items.length > 0) {
 						writeLine("Take which # item?");
+						for (i = 0; i < currentRoom.items.length; i++) 
+							writeLine("#"+(i+1)+". "+thisRoomsItems[i].desc);
 						takinAnItem = true;
 					} else {
 						writeLine("There's nothing of value to take in this room.");
@@ -237,13 +276,13 @@ window.onload = (function powerOn() {
 					usinAnItem = true;
 				},
 				c: function() {
-					writeLine("Combine which items? (ex: 1,2)");
+					writeLine("What will you combine? (ex: 1,2)");
 					player.displayInv();
-					writeLine("#"+(player.inventory.length+2)+". yourself");
+					writeLine("#"+(player.inventory.length+1)+". yourself");
 					combineItem = true;
 				},
 				default: function() {
-					writeLine("I don't understand your moonspeak....");
+					writeLine("?");
 				}
 			};
 
@@ -255,9 +294,10 @@ window.onload = (function powerOn() {
 			
 			var parseItem = function(input, container) {
 				if (debug) {console.log("(parsing an item) i'm trying to interpret " + input)} else {};
-				if (!!parseInt(input) && container[input]) {
-					return container[input];
-				} else {return "item not found in "+container+"!"};
+				if (!!isInt(input) && !!container[input]) {
+					if (debug) {console.log("successfully parsed " + container[input].name)} else {};
+					return true;
+				} else {console.log("item not found in "+container+"!")};
 			};
 
 			if (!!isGameIntro) {
@@ -276,11 +316,10 @@ window.onload = (function powerOn() {
 				gameIntro();
 			} else if (!!takinAnItem) { // are they trying to pick up an item? should only happen if they press t.
 				var takeDatItem = function() {	
-					if (parseItem((inputVal), thisRoomsItems)) {
+					if (parseItem((inputVal - 1), thisRoomsItems)) {
 						// todo in the morning: take the ITEM from itemLibrary, not just the string from item.desc...
 						// "done": now finishing up and testing... 
 						var itemInQuestion = thisRoomsItems[inputVal - 1]; 
-						if (debug) {console.log("successfully parsed " + itemInQuestion.name)} else {};
 						
 						if (!!itemInQuestion) {
 							player.inventory.push(itemInQuestion);
@@ -299,12 +338,12 @@ window.onload = (function powerOn() {
 					};
 				}; takeDatItem(); // ALWAYS REMEMBER TO CALL FUNCTIONS AFTER YOU DEFINE THEM. 
 			} else if (!!usinAnItem) {
-				if (parseItem(inputVal, player.inventory)) {
+				if (parseItem(inputVal - 1, player.inventory)) {
 					var itemInQuestion = player.inventory[inputVal - 1];
 					if (debug) {console.log("i can now use the " + itemInQuestion.name)} else {};
 					if (itemInQuestion.condition === 0) {
 						writeLine("The fragile "+itemInQuestion.name+" snaps in half.")
-						q = player.inventory.indexOf(itemInQuestion); // remember how to do this, remove a single element: for arrays specifically.... not objects
+						var q = player.inventory.indexOf(itemInQuestion); // remember how to do this, remove a single element: for arrays specifically.... not objects
 						player.inventory.splice(q, 1); // starting at q, splice 1 item
 					} else {
 						itemInQuestion.condition--;
@@ -318,23 +357,50 @@ window.onload = (function powerOn() {
 											// finds its .use array, searches the sub-arrays for other
 											// items that can be combined, and runs the function paired with
 											// that other item.
+				var canUse = false;
+				combineItem = false;
+				
 				inputVal.toString(); 
 				var item1 = inputVal.slice(0,1) - 1;		// subtract 1 because the inventory numbering starts at 1
-				var item2 = inputVal.slice(2,1) - 1;
+				var item2 = inputVal.slice(2,3) - 1;
+				if (debug) console.log(item1, item2); else;
 				if (parseItem(item1, player.inventory) && parseItem(item2, player.inventory)) { // this is about to get really ugly. i apologize in advance
 					if (typeof(player.inventory[item1].use) == "object") {
 						(function() {
+							
 							for (i = 0; i < player.inventory[item1].use.length; i++) {
-								if (player.inventory[item1].use[i][0] === item2.name) {
-									return player.inventory[item1].use[i][1](); 
-								} else {};
+								if (debug) console.log("this is working: "+i); else;
+								if (player.inventory[item1].use[i][0] === player.inventory[item2].name) {
+									canUse = true;
+									return player.inventory[item1].use[i][1](player.inventory[item2]); 
+								} else {									
+									if (debug) console.log("i tried to find "+player.inventory[item1].name+"'s use function for "+player.inventory[item2].name+" and failed"); else;
+								};
 							};
 						})(); 
+
+						if (canUse) {
+							writeLine("You combine the "+player.inventory[item1].name+" with the "+player.inventory[item2].name+"...");
+						} else {
+							writeLine("You can't think of a way to combine those.");
+						};
 					} else {
 						writeLine("Nothing happens.");
 					};
+				} else if (Math.max(item1,item2) === player.inventory.length) { // indicates player is attempting to use item with themselves
+					var nonPlayerItem = player.inventory[Math.min(item1,item2)];						// indicates which slot is not the player (e.g. 2,1 or 1,2 both return 1)
+
+					var playerCombine = function(anItem) {
+						for (i = 0; i < anItem.use.length; i++) {
+							if (anItem.use[i][0] === "player") {
+								anItem.use[i][1](); 
+							} else {
+								writeLine("You shouldn't do that to yourself.");
+							};
+						};
+					};
+					playerCombine(nonPlayerItem);
 				};
-				combineItem = false;
 			} else (actions[inputVal] || actions.default)();
 
 			input.select(); // makes it easy to re-enter text
@@ -350,7 +416,7 @@ function isInt(i) {
 
 
 // yay, it's the items file! 
-// this was originally a separate file, but it kept causing errors because the page was trying to load undeclared variables.
+// this was originally a separate file, but it kept causing errors because the script loaded before the other variables.
 
 // all items go here
 window.itemLibrary = {
@@ -362,7 +428,10 @@ window.itemLibrary = {
 			desc: "A rotted wooden plank, run through with a jagged old nail.",
 		// items this can interact with (format: [otherItem, action function]) // don't have inter-item dunctionality yet but we're getting there...............
 			use: 	[
-						["", function() {player.panic();}]
+						["default", function() {player.equip(itemLibrary[0])}],
+						["player", function() {writeLine("You think about it for a moment, but eventually decide not to run the jagged nail through your forehead.")}],
+						["dead rat", function() {player.kill(itemLibrary[1], itemLibrary[0]);}],
+						["dirty doll", function() {player.kill(itemLibrary[7], itemLibrary[0])}]
 					],
 		// uses left before breaking
 			condition: 10,
@@ -378,7 +447,10 @@ window.itemLibrary = {
 		name: "dead rat",
 		desc: "A crisply mummified rat.",
 		use: 	[ 
-					[player, function() {writeLine("You pinch your nose, and force the dusty, empty-eyed rat inside your mouth. It tastes of hideous death. Faint with disgust, you keel over, and everything fades...");}], 
+					["default", function() {writeLine("Eugh. It's gotten crusty.")}],
+					["player", function() {writeLine("You pinch your nose, and force the dusty, empty-eyed rat inside your mouth. It tastes of hideous death. Faint with disgust, you keel over, and everything fades...");}], 
+					["plank", function() {player.kill(itemLibrary[1], itemLibrary[0]);}],
+					["rusty pipe", function() {player.kill(itemLibrary[1], itemLibrary[6]);}]
 				],
 		condition: 1,
 		weapon: false,
@@ -422,7 +494,8 @@ window.itemLibrary = {
 		name: "rotten apple",
 		desc: "A pile of flies, swarming on what might be an apple.",
 		use: 	[
-					["", function() {writeLine("No. Ew.");}]
+					["default", function() {writeLine("No. Ew.");}],
+					["player", function() {writeLine("Against better judgment, you decide to snack on the putrid fruit. Your teeth sink into a squirming bed of maggots, popping their ripe guts, steaming, still writhing onto your tongue, smothering it with the abhorrent slime of decay.")}]
 				],
 		condition: 1,
 		weapon: false,
@@ -433,7 +506,13 @@ window.itemLibrary = {
 		name: "rusty pipe",
 		desc: "A segment of old pipe.",
 		use: 	[
-					["", function() {player.equip(this);},]
+					["default", function() {player.equip(itemLibrary[6])}],
+					["player", function() {
+						writeLine("You bash yourself in the head. <p> CLANG.... <p> and your vision swims... <p> You feel dizzy... might want to wait a few minutes before trying that one again.");
+						player.vitality--;
+					}]
+					["dead rat", function() {player.kill(itemLibrary[1], itemLibrary[6])}],
+					["dirty doll", function() {player.kill(itemLibrary[7], itemLibrary[6])}]
 				],
 		condition: 50,
 		weapon: true,
@@ -444,8 +523,16 @@ window.itemLibrary = {
 		name: "dirty doll",
 		desc: "A worn-down doll with a cracked button eye. Seems to be missing a mouth.",
 		use: 	[ 
-					[player, player.panic], 
-					[this[1], player.kill] 
+					["default", function() {writeLine("As you stare at the doll and consider what you should do with it, you find its broken eye strangely captivating. Something about the pattern in the plastic, and the way the coarse string has been woven through the odd number of button-holes, seems to draw you in. You want to keep looking. The dark patch where the doll's mouth should have been almost quivers as though it's going to speak, and then -- <p> Ah, what was that? Hm, must have been a rat or something in the next room.");}], 
+					["plank", function() {player.kill(itemLibrary[7], itemLibrary[0]);}],
+					["rusty pipe", function() {player.kill(itemLibrary[7], itemLibrary[6]);}],
+					["player", function() {
+						writeLine("The doll bites your finger!");
+						player.vitality--;
+					}]
+					//
+					// combat START!
+					//
 				],
 		condition: 5,
 		weapon: false,
@@ -453,6 +540,51 @@ window.itemLibrary = {
 		isInARoom: false
 	},
 	8: {
-
+		name: "odd coin",
+		desc: "An antique coin, carved with the face of a lost monarch.",
+		use: 	[
+					["default", function() {writeLine("The coin's surface has scratched and battered with age, rendering the ruler, and the thorny, twisted crest on the opposite side, inscrutable. Remarkable, to be sure. Bronze? Hints of silver? You can't be certain. It gleams, although the light is dim.")}],
+					["player", function() {
+						writeLine("You bite the coin. It seems to be genuine. Heavy for its size, but metal. Leaves a weird taste in your mouth.");
+						player.vitality--;
+					}]
+				],
+		condition: -1,
+		weapon: false,
+		damage: 0,
+		isInARoom: false
+	},
+	9: {
+		name: "syringe",
+		desc: "One long, wicked hypodermic needle, recently used. You narrowly avoided stepping on it...",
+		use: 	[
+					["default", function() {player.equip(itemLibrary[9])}],
+					["player", function() {
+						writeLine("You gore yourself with the sickening point of the contaminated needle. A purple stream of blood pumps out of the wound - a messy job you've made of it. But you thumb the plunger all the same, squeezing the last bit of... whatever it was... into your bloodstream. <p> Your heart begins to surge with adrenaline. Is it excitement? Or is the substance working itself through your system? Either way, you're bleeding pretty badly...");
+						player.bleeding = true;
+					}]
+				],
+		condition: 5,
+		weapon: true,
+		damage: 6,
+		isInARoom: false
+	},
+	10: {
+		name: "rocking-horse",
+		desc: "A child's rocking-horse with a roughly carved head and grinning mouth.",
+		use: 	[
+					["default", function() {
+						writeLine("You mount the flimsy thing, but you feel ridiculou -- CRACK!");
+						this.condition = 0;
+					}],
+					["player", function() {
+						writeLine("You mount the flimsy thing, but you feel ridiculou -- CRACK!");
+						this.condition = 0;
+					}]
+				],
+		condition: 3,
+		weapon: false,
+		damage: 0,
+		isInARoom: false
 	}
 };

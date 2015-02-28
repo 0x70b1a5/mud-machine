@@ -18,6 +18,9 @@ var drawBlueprint = function(xSize, ySize) {
 			blueprint[x][y].desc += "#"+x+y;
 			blueprint[x][y].x = x; blueprint[x][y].y = y;
 			populateItems(blueprint[x][y]);
+			if ((x === 0 && y === 1) || (x === 0 && y === 0)) {
+				blueprint[x][y].isAWall = false;
+			} else {}; // the first two rooms shouldn't be walls...
 			if (!!Math.floor(5*Math.random())) 
 				blueprint[x][y].isAWall = false; else {};
 		}
@@ -33,7 +36,6 @@ var populateItems = function(room) {
 			var totalNumberItems = 0;
 			var count = 0;
 			for (var k in itemLibrary) if (itemLibrary.hasOwnProperty(k)) ++count; // since there's no clean way to find the number of properties in an object, 
-																				   // this is how we determine how many items are in the list of all possible items... >_< 
 
 			var randomItem = itemLibrary[Math.floor(Math.random()*count)];
 			if (!randomItem.isInARoom)	{ // won't add unique items to rooms if they've already been pushed /// QUIT DOING THAT STUFF WITH THE NO BRACKETS
