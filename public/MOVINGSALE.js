@@ -20,10 +20,11 @@
 
 // TO DO LIST!
 // ===========
-// [] 1. Differentiate between item DEFAULT actions, and item combine-with-player actions!
+// [x] 1. Differentiate between item DEFAULT actions, and item combine-with-player actions!
 // [] 2. Make more items!
 // [] 3. Make unique rooms!
 // [] 4. More room attributes!
+// [] 4.5 Including generated descriptions that aren't its xy coords...............................
 // [] 5. Player bleeding condition! 
 // [] 6. & other conditions?
 
@@ -70,6 +71,7 @@ window.player = {
 			this.currentX = x;
 			this.currentY = y;
 			if (debug) console.log("now in room #" + blueprint[x][y].x + blueprint[x][y].y); else {};
+			writeLine("You walk to the next room...");
 			this.look(); // automagically looks around the room whenever you move
 		} else {
 			writeLine("You hit a wall.");
@@ -93,7 +95,7 @@ window.player = {
 		var madRamblings = ["<p>and.... and... oh god... oh NO.... OH GOD! I "];
 		for (var p = 0; p <= Math.floor(1000*Math.random()); p++) {
 			var wordOfTruth = Math.floor(100*Math.random());
-			var gospelOfElderOnes = ["horrible", "dark", "AAAAAA", "DID YOU SEE THAT?", "hate. hate. hate.", "HATE. I HATE.", 
+			var gospelOfElderOnes = ["horrible", "dark", "AAAAAA", "DID YOU SEE THAT?", "hate. hate.", 
 										"HATE.", "hate", "foul", "he comes...", "he sleeps", "the dreamer wakes", "even death may die", 
 										"I have seen him", "I have seen the sign", "hnnn hnnn hnngnngng haanaaahhh",  "IÄ! IÄ!",
 										"UAAAH...", "ACKGHHAUGH!", "EEEEE! EEEEEEE! EEEEEEEE!", "AIEEEE!", "vitim, visium, victum.", 
@@ -132,7 +134,6 @@ window.player = {
 
 	kill: function(enemy, weapon) {
 		// add combat stuff later
-		// or now, that's fine too
 
 		if (enemy && weapon && weapon.weapon === true) {
 			writeLine("You land a ferocious blow with the "+weapon.name+" and the "+enemy.name+" collapses, dead.");
@@ -147,7 +148,7 @@ window.player = {
 
 	bleeding: false,
 
-	vitality: 10
+	vitality: 10,
 };
 
 setInterval(function() {
@@ -185,10 +186,6 @@ function gameIntro() {
 	};
 
 	writeLine(
-		"<p>> Controls: N,S,E,W: move, I: inventory, ?: help.<br>"
-		+
-		".'=========^==============^=============^========'<p>"
-		+
 		"<p> You are standing outside of a store. <p>"
 		+
 		"The store is only allegedly a store, because you can't see any indication that the dubious building slouching in front of you has ever been anything but an empty place for dreams to die. Then again, you could say that about this entire neighborhood, but that's a story for another game. Anyway, the internet says it's a store, so a store it must be. <p>"
@@ -198,7 +195,9 @@ function gameIntro() {
 		+
 		"<p>You aren't sure what to make of that.<p>"
 		+
-		"<p>The storefront is about " + blueprint.length + " meters wide, with a low, cramped door accessible only through the " + checkAlleyLength() + " side alley."
+		"<p>The storefront is about " + blueprint.length*10 + " meters wide, with a low, cramped door accessible only through the " + checkAlleyLength() + " side alley."
+		+
+		"<p>> Controls: N,S,E,W: move / I: inventory / ?: help<br>"
 	);
 };
 
@@ -209,9 +208,10 @@ window.onload = (function powerOn() {
 	window.combineItem = false;
 
 	if (!!power) {
-		writeLine("Welcome to Moving Sale, a game of horror, adventure, and escape.<p>" 
+		writeLine("Welcome to Moving Sale, a game of horror, adventure, and escape.<p>"
 			+
-			"<p>Enter a store size, in meters:");
+			"Please choose a size for the game world: (ex. '5', '20', '300')<p>"
+		);
 
 		document.getElementById("input-zone").addEventListener("submit", submitAction, false);
 
@@ -220,6 +220,7 @@ window.onload = (function powerOn() {
 			var input = document.getElementById("user-input-field") 
 				, inputVal;
 			inputVal = input.value;
+			inputVal = inputVal.toLowerCase();
 			if (debug) {console.log("inputVal = " + inputVal)} else {};
 			// takinAnItem = false; // please never do this again: try to put the falsinator before the check for truth >_<+
 
@@ -262,7 +263,7 @@ window.onload = (function powerOn() {
 				},
 				t: function() {
 					if (currentRoom.items.length > 0) {
-						writeLine("Take which # item?");
+						writeLine("Take which # item? (ex. '1' '5')");
 						for (i = 0; i < currentRoom.items.length; i++) 
 							writeLine("#"+(i+1)+". "+thisRoomsItems[i].desc);
 						takinAnItem = true;
@@ -276,7 +277,7 @@ window.onload = (function powerOn() {
 					usinAnItem = true;
 				},
 				c: function() {
-					writeLine("What will you combine? (ex: 1,2)");
+					writeLine("What will you combine? (ex: '1,2' '3,5' '6,1')");
 					player.displayInv();
 					writeLine("#"+(player.inventory.length+1)+". yourself");
 					combineItem = true;
@@ -303,7 +304,7 @@ window.onload = (function powerOn() {
 			if (!!isGameIntro) {
 				if (!!isInt(inputVal)) { // to-do: figure out how to check only the first input of the game... 
 					if (debug) {console.log("inputVal = " + inputVal)} else {};
-					writeLine("Generating store of size = " + inputVal + " meters...<p>" + "<p> -------------------------------------")
+					writeLine("Generating store of size = " + inputVal*10 + " meters...<p>" + "<p> -------------------------------------")
 					var blueprintX = inputVal;
 					var blueprintY = blueprintX;
 					drawBlueprint(blueprintX, blueprintY); // i know it's redundant having only square stores, but it's a pain in the ass asking for two different side lenghs
@@ -341,13 +342,14 @@ window.onload = (function powerOn() {
 				if (parseItem(inputVal - 1, player.inventory)) {
 					var itemInQuestion = player.inventory[inputVal - 1];
 					if (debug) {console.log("i can now use the " + itemInQuestion.name)} else {};
+					--itemInQuestion.condition;
+					player.useItem(itemInQuestion);
 					if (itemInQuestion.condition === 0) {
 						writeLine("The fragile "+itemInQuestion.name+" snaps in half.")
 						var q = player.inventory.indexOf(itemInQuestion); // remember how to do this, remove a single element: for arrays specifically.... not objects
 						player.inventory.splice(q, 1); // starting at q, splice 1 item
 					} else {
-						itemInQuestion.condition--;
-						player.useItem(itemInQuestion);
+						// do nothing, the item is fine
 					};
 				} else {
 					writeLine("You aren't holding that.");
@@ -510,7 +512,7 @@ window.itemLibrary = {
 					["player", function() {
 						writeLine("You bash yourself in the head. <p> CLANG.... <p> and your vision swims... <p> You feel dizzy... might want to wait a few minutes before trying that one again.");
 						player.vitality--;
-					}]
+					}],
 					["dead rat", function() {player.kill(itemLibrary[1], itemLibrary[6])}],
 					["dirty doll", function() {player.kill(itemLibrary[7], itemLibrary[6])}]
 				],

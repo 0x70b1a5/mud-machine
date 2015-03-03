@@ -62,7 +62,7 @@ body {
 	height: 100%;
 }
 #container {
-	width: 60vw;
+	width: 70vw;
 	height: 100%;
 	margin: 0 auto;
 }
@@ -72,15 +72,28 @@ h1 {
 }
 #terminal {
 	display: inline-block;
-	width: 100%;
-	height: 60vh;
+	width: 60%;
+	height: 59%;
 	border: 1px solid white;
 	font-family: 'Courier New', sans-serif;
 	background-color: black;
-	margin-bottom:7px;
+	margin-bottom: 7px;
 	word-break: break-word;
 	overflow: auto;
 	padding: 5px;
+	float: right;
+}
+#gfx {
+	display: inline-block;
+	width: 33%;
+	height: 55%;
+	border: 1px solid white;
+	font-family: 'Courier New', sans-serif;
+	background-color: black;
+	margin: 10px 10px;
+	padding: 5px;
+	float: left;
+	overflow: hidden;
 }
 #user-input-field {
 	border: 1px solid white;
