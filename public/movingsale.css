@@ -85,15 +85,14 @@ h1 {
 }
 #gfx {
 	display: inline-block;
-	width: 33%;
-	height: 55%;
 	border: 1px solid white;
 	font-family: 'Courier New', sans-serif;
 	background-color: black;
 	margin: 10px 10px;
 	padding: 5px;
 	float: left;
-	overflow: hidden;
+	overflow: auto;
+	font-size: .67em;
 }
 #user-input-field {
 	border: 1px solid white;
@@ -118,4 +117,14 @@ h1 {
 }
 #command-line {
 	border: none;
+}
+#player-icon {
+	font-weight: bold;
+	text-shadow: 1px 1px #000000;
+	color: #ffffff;
+	background-color: #aa0000;
+	text-decoration: underline;
+}
+#map-title {
+	margin-left: 20px;
 }

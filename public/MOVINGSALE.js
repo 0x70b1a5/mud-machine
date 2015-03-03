@@ -34,13 +34,18 @@ window.debug = true;
 var isGameIntro = true; // if intro, then forbids player from submitting non-integers into the world-gen function.
 
 // the player
+window.currentRoom = {
+	x: 0,
+	y: 0
+};
+
 window.player = {
 	currentX: 0,
 	currentY: 0,
 
 	// looks around the room
 	look: function() {
-		currentRoom = blueprint[this.currentX][this.currentY]; 
+		window.currentRoom = blueprint[this.currentX][this.currentY]; 
 		writeLine(currentRoom.desc);
 
 		thisRoomsItems = [];
@@ -226,16 +231,16 @@ window.onload = (function powerOn() {
 
 			var actions = {
 				n: function() {
-					player.setPosition(player.currentX, player.currentY + 1);
-				},
-				s: function() {
-					player.setPosition(player.currentX, player.currentY - 1);
-				},
-				w: function() {
 					player.setPosition(player.currentX - 1, player.currentY);
 				},
-				e: function() {
+				s: function() {
 					player.setPosition(player.currentX + 1, player.currentY);
+				},
+				w: function() {
+					player.setPosition(player.currentX, player.currentY - 1);
+				},
+				e: function() {
+					player.setPosition(player.currentX, player.currentY + 1);
 				},
 				i: function() {
 					player.displayInv();
@@ -406,6 +411,7 @@ window.onload = (function powerOn() {
 			} else (actions[inputVal] || actions.default)();
 
 			input.select(); // makes it easy to re-enter text
+
 		}
 	};
 })();

@@ -32,7 +32,7 @@ var drawBlueprint = function(xSize, ySize) {
 				} else {
 					populateItems(blueprint[x][y]); 
 				}; 
-				if (!!Math.floor(5*Math.random())) {
+				if (!!Math.floor(4*Math.random())) {
 					blueprint[x][y].isAWall = false;
 				} else {
 					// room is a wall	
@@ -51,7 +51,7 @@ var drawBlueprint = function(xSize, ySize) {
 var populateItems = function(room) {
 	room.items = [];
 	if (!!Math.floor(Math.random()*10)) {
-		for (i = 0; i <= Math.floor(Math.random()*10); i++) // 90% chance to add 1-10 items to a room
+		for (i = 0; i <= Math.floor(Math.random()*10); i++) { // 90% chance to add 1-10 items to a room
 			var totalNumberItems = 0;
 			var count = 0;
 			for (var k in itemLibrary) if (itemLibrary.hasOwnProperty(k)) ++count; // since there's no clean way to find the number of properties in an object, 
@@ -61,6 +61,7 @@ var populateItems = function(room) {
 				room.items.push(randomItem); // randomly adds i number of items from from itemLibrary
 				randomItem.isInARoom = true;
 			} else {};
+		}
 	} else {}; 
 };
 
