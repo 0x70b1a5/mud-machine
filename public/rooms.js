@@ -100,7 +100,7 @@ RoomTemplate = function(desc, items, actions, isAWall, prob) {
 // list of unique rooms
 
 kitchen = new RoomTemplate(
-	"Some kind of machine lays in the center of the room, its wires and entrails cast about on the floor, like carrion. Mercifully, the thing is just a machine... but somehow, the autopsy is none the less disturbing. \n Heaps of trash and discarded food sag on the peeling counters and tabletop. The air burns your lungs as you inhale. A fly slips up your nose and you sneeze violently. The room is thick with the poisonous, hateful squelch of squirming maggots and buzzing flies. A narrow path of linoleum seems to have been carved out of the muck on the floor.",
+	"Some kind of machine lays in the center of the room, its wires and entrails cast about on the floor, like carrion. Mercifully, the thing is just a machine... but somehow, the autopsy is none the less disturbing. <p> Heaps of trash and discarded food sag on the peeling counters and tabletop. The air burns your lungs as you inhale. A fly slips up your nose and you sneeze violently. The room is thick with the poisonous, hateful squelch of squirming maggots and buzzing flies. A narrow path of linoleum seems to have been carved out of the muck on the floor.",
 	[],
 	[],
 	false,
@@ -109,10 +109,15 @@ kitchen = new RoomTemplate(
 kitchen = new Room(kitchen);
 
 livingRoom = new RoomTemplate(
-
+	"Between the teetering piles of garbage and shelves full of decaying food, something like a light is shining between the cracks. Looking closer, it's making noise, too. A television? And across from it... dear God... something barely human, flaccid on a festering armchair, its skin flowing off its limbs like sickly rubber, gaping numbly at the antique television set with dying eyes...",
+	[itemLibrary[11]],
+	[],
+	false,
+	0.05
 );
-
+livingRoom = new Room(livingRoom);
 
 RoomLibrary = {
-	0: kitchen
+	0: kitchen,
+	1: livingRoom
 };

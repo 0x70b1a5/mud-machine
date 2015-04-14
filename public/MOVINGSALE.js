@@ -22,7 +22,7 @@
 // ===========
 // [x] 1. Differentiate between item DEFAULT actions, and item combine-with-player actions!
 // [] 2. Make more items!
-// [] 3. Make unique rooms!
+// [x] 3. Make unique rooms!
 // [] 4. More room attributes!
 // [] 4.5 Including generated descriptions that aren't its xy coords...............................
 // [] 5. Player bleeding condition! 
@@ -43,6 +43,13 @@ window.player = {
 	currentX: 0,
 	currentY: 0,
 
+	// kills the player
+	die: function() {
+		writeLine("Exhausted, defeated, at the end of your rope... Across the room, something that once might have been a window is now molded and overgrown with unspeakable masses of tumorous celluloid. Below it on the floor, you manage to find a jagged shard of glass. Without hesitation, your grip not trembling, but steady - you slice your wrists open down the length of your forearms, and everything fades.");
+		window.setInterval(player.panic, 10000);
+		window.setInterval((function() { document.location.reload(); }), 20000);
+	},
+
 	// looks around the room
 	look: function() {
 		window.currentRoom = blueprint[this.currentX][this.currentY]; 
@@ -54,7 +61,7 @@ window.player = {
 			blueprint[this.currentX][this.currentY].items[i].shift;
 		};
 		if (thisRoomsItems.length > 0) {
-			writeLine("And on the floor, there is: <br>");
+			writeLine("And on the floor, there is: \n");
 			for (i = 0; i < currentRoom.items.length; i++) 
 				writeLine(thisRoomsItems[i].desc);
 		} else writeLine("The moldy floor is cluttered with worthless trash.")
@@ -76,8 +83,7 @@ window.player = {
 			this.currentX = x;
 			this.currentY = y;
 			if (debug) console.log("now in room #" + blueprint[x][y].x + blueprint[x][y].y); else {};
-			writeLine("You walk to the next room...");
-			this.look(); // automagically looks around the room whenever you move
+			this.look(); // automagically looks around the room when you move to it
 		} else {
 			writeLine("You hit a wall.");
 		}
@@ -97,7 +103,7 @@ window.player = {
 
 	// the only reaction i will ever need
 	panic: function() {
-		var madRamblings = ["<p>and.... and... oh god... oh NO.... OH GOD! I "];
+		var madRamblings = ["\nand.... and... oh god... oh NO.... OH GOD! I "];
 		for (var p = 0; p <= Math.floor(1000*Math.random()); p++) {
 			var wordOfTruth = Math.floor(100*Math.random());
 			var gospelOfElderOnes = ["horrible", "dark", "AAAAAA", "DID YOU SEE THAT?", "hate. hate.", 
@@ -141,7 +147,7 @@ window.player = {
 		// add combat stuff later
 
 		if (enemy && weapon && weapon.weapon === true) {
-			writeLine("You land a ferocious blow with the "+weapon.name+" and the "+enemy.name+" collapses, dead.");
+			writeLine("You land a ferocious blow with the "+weapon.name+", destroying the "+enemy.name+".");
 			// okay it's basic. add enemies.
 
 		} else if (enemy) {
@@ -166,16 +172,14 @@ setInterval(function() {
 	} else {};
 }, 10000);
 
-
 // outputting text to #terminal 
 function writeLine(words) {
 	var terminal = document.getElementById("terminal");
-
-	terminal.innerHTML += words + "<p>";
+	var newLine = document.createTextNode(words);
+	terminal.appendChild(newLine);
+	terminal.appendChild(document.createElement("BR"));
 	terminal.scrollTop = terminal.scrollHeight;
 }
-
-
 
 function gameIntro() {
 	var checkAlleyLength = function() { // why of course i need a function for this
@@ -191,18 +195,18 @@ function gameIntro() {
 	};
 
 	writeLine(
-		"<p> You are standing outside of a store. <p>"
+		"\n You are standing outside of a store. \n"
 		+
-		"The store is only allegedly a store, because you can't see any indication that the dubious building slouching in front of you has ever been anything but an empty place for dreams to die. Then again, you could say that about this entire neighborhood, but that's a story for another game. Anyway, the internet says it's a store, so a store it must be. <p>"
+		"The store is only allegedly a store, because you can't see any indication that the dubious building slouching in front of you has ever been anything but an empty place for dreams to die. Then again, you could say that about this entire neighborhood, but that's a story for another game. Anyway, the internet says it's a store, so a store it must be. \n"
 		+
-		"<p>'MOVING SALE', the tacky plastic tarp shouts at you. <br>" +
-		"'Better than a garage sale, it's the whole house!'<p>"
+		"\n'MOVING SALE', the tacky plastic tarp shouts at you. \n" +
+		"'Better than a garage sale, it's the whole house!'\n"
 		+
-		"<p>You aren't sure what to make of that.<p>"
+		"\nYou aren't sure what to make of that.\n"
 		+
-		"<p>The storefront is about " + blueprint.length*10 + " meters wide, with a low, cramped door accessible only through the " + checkAlleyLength() + " side alley."
+		"\nThe storefront is about " + blueprint.length*10 + " meters wide, with a low, cramped door accessible only through the " + checkAlleyLength() + " side alley."
 		+
-		"<p>> Controls: N,S,E,W: move / I: inventory / ?: help<br>"
+		"\n> Controls: N,S,E,W: move / I: inventory / ?: help\n"
 	);
 };
 
@@ -213,9 +217,9 @@ window.onload = (function powerOn() {
 	window.combineItem = false;
 
 	if (!!power) {
-		writeLine("Welcome to Moving Sale, a game of horror, adventure, and escape.<p>"
+		writeLine("Welcome to Moving Sale, a game of horror, adventure, and escape.\n"
 			+
-			"Please choose a size for the game world: (ex. '5', '20', '300')<p>"
+			"Please choose a size for the game world: (ex. '5', '20', '300')\n"
 		);
 
 		document.getElementById("input-zone").addEventListener("submit", submitAction, false);
@@ -249,16 +253,16 @@ window.onload = (function powerOn() {
 					player.panic();
 				},
 				"?": function() {
-					writeLine("<p>-----------------------------------------<br>"
-						+ "You are playing a game from which there is no escape.<br>"
-						+ "Not even God himself could help you. But me... I can try.<p>"
-						+ "<p>Controls:<br>"
-						+ "N,S,E,W: move around<p>"
-						+ "I: check inventory<p>"
-						+ "T: take an item<p>"
-						+ "U: use item<p>"
-						+ "C: combine items<p>"
-						+ "L: look around...<p>")
+					writeLine("\n-----------------------------------------\n"
+						+ "You are playing a game from which there is no escape.\n"
+						+ "Not even God himself could help you. But me... I can try.\n"
+						+ "\nControls:\n"
+						+ "N,S,E,W: move around\n"
+						+ "I: check inventory\n"
+						+ "T: take an item\n"
+						+ "U: use item\n"
+						+ "C: combine items\n"
+						+ "L: look around...\n")
 				},
 				d: function() {
 					player.die();
@@ -295,7 +299,7 @@ window.onload = (function powerOn() {
 			event.preventDefault(); // this has to go after the actions object otherwise it breaks 
 
 // below this massive line is where the game actualy interprets inputs. all code above this line is not interpretation.
-// remember this for later before you spend 100,000 hours trying to figure your your stupid input parsing l0l
+// remember this for later before you spend 100,000 hours trying to figure out your stupid input parsing l0l
 // ====================================================================================================================
 			
 			var parseItem = function(input, container) {
@@ -309,7 +313,7 @@ window.onload = (function powerOn() {
 			if (!!isGameIntro) {
 				if (!!isInt(inputVal)) { // to-do: figure out how to check only the first input of the game... 
 					if (debug) {console.log("inputVal = " + inputVal)} else {};
-					writeLine("Generating store of size = " + inputVal*10 + " meters...<p>" + "<p> -------------------------------------")
+					writeLine("Generating store of size = " + inputVal*10 + " meters...\n" + "\n -------------------------------------")
 					var blueprintX = inputVal;
 					var blueprintY = blueprintX;
 					drawBlueprint(blueprintX, blueprintY); // i know it's redundant having only square stores, but it's a pain in the ass asking for two different side lenghs
@@ -399,11 +403,12 @@ window.onload = (function powerOn() {
 
 					var playerCombine = function(anItem) {
 						for (i = 0; i < anItem.use.length; i++) {
+							var usedIt = false;
 							if (anItem.use[i][0] === "player") {
+								usedIt = true;
 								anItem.use[i][1](); 
-							} else {
-								writeLine("You shouldn't do that to yourself.");
 							};
+							if (!usedIt) writeLine("You shouldn't do that to yourself.");
 						};
 					};
 					playerCombine(nonPlayerItem);
@@ -422,6 +427,16 @@ function isInt(i) {
     !isNaN(parseInt(i, 10));
 };
 
+function ProtoItem(name, desc, use, condition) {
+	this.name = name || "i have no name";
+	this.desc = desc || "i am nothing";
+	this.use = use || [["default", "You have no idea how to use this."]];
+	this.condition = condition || -1; 
+	this.weapon = false;
+	this.damage = 0;
+	this.isInARoom = false;
+	this.unique = true;
+};
 
 // yay, it's the items file! 
 // this was originally a separate file, but it kept causing errors because the script loaded before the other variables.
@@ -449,7 +464,8 @@ window.itemLibrary = {
 			damage: 1,
 		// set this to true once it's in a room, then, it won't be put in any other rooms. 
 		// if false, it'll keep being put in randomly with the others.
-			isInARoom: false
+			isInARoom: false,
+			unique: true
 	},
 	1: {
 		name: "dead rat",
@@ -463,7 +479,8 @@ window.itemLibrary = {
 		condition: 1,
 		weapon: false,
 		damage: 0,
-		isInARoom: false
+		isInARoom: false,
+		unique: true
 	},
 	2: {
 		name: "wits",
@@ -474,7 +491,8 @@ window.itemLibrary = {
 		condition: 5,
 		weapon: true,
 		damage: 5,
-		isInARoom: true
+		isInARoom: true,
+		unique: true
 	},
 	3: {
 		name: "hopes",
@@ -485,7 +503,8 @@ window.itemLibrary = {
 		condition: -1,
 		weapon: false,
 		damage: 0,
-		isInARoom: true
+		isInARoom: true,
+		unique: true
 	},
 	4: {
 		name: "dreams",
@@ -496,7 +515,8 @@ window.itemLibrary = {
 		condition: -1,
 		weapon: false,
 		damage: 0,
-		isInARoom: true
+		isInARoom: true,
+		unique: true
 	},
 	5: {
 		name: "rotten apple",
@@ -508,7 +528,8 @@ window.itemLibrary = {
 		condition: 1,
 		weapon: false,
 		damage: 0,
-		isInARoom: false
+		isInARoom: false,
+		unique: true
 	},
 	6: {
 		name: "rusty pipe",
@@ -516,7 +537,7 @@ window.itemLibrary = {
 		use: 	[
 					["default", function() {player.equip(itemLibrary[6])}],
 					["player", function() {
-						writeLine("You bash yourself in the head. <p> CLANG.... <p> and your vision swims... <p> You feel dizzy... might want to wait a few minutes before trying that one again.");
+						writeLine("You bash yourself in the head. \n CLANG.... \n and your vision swims... \n You feel dizzy... might want to wait a few minutes before trying that one again.");
 						player.vitality--;
 					}],
 					["dead rat", function() {player.kill(itemLibrary[1], itemLibrary[6])}],
@@ -525,13 +546,14 @@ window.itemLibrary = {
 		condition: 50,
 		weapon: true,
 		damage: 5,
-		isInARoom: false
+		isInARoom: false,
+		unique: true
 	},
 	7: {
 		name: "dirty doll",
 		desc: "A worn-down doll with a cracked button eye. Seems to be missing a mouth.",
 		use: 	[ 
-					["default", function() {writeLine("As you stare at the doll and consider what you should do with it, you find its broken eye strangely captivating. Something about the pattern in the plastic, and the way the coarse string has been woven through the odd number of button-holes, seems to draw you in. You want to keep looking. The dark patch where the doll's mouth should have been almost quivers as though it's going to speak, and then -- <p> Ah, what was that? Hm, must have been a rat or something in the next room.");}], 
+					["default", function() {writeLine("As you stare at the doll and consider what you should do with it, you find its broken eye strangely captivating. Something about the pattern in the plastic, and the way the coarse string has been woven through the odd number of button-holes, seems to draw you in. You want to keep looking. The dark patch where the doll's mouth should have been almost quivers as though it's going to speak, and then -- \n Ah, what was that? Hm, must have been a rat or something in the next room.");}], 
 					["plank", function() {player.kill(itemLibrary[7], itemLibrary[0]);}],
 					["rusty pipe", function() {player.kill(itemLibrary[7], itemLibrary[6]);}],
 					["player", function() {
@@ -545,7 +567,8 @@ window.itemLibrary = {
 		condition: 5,
 		weapon: false,
 		damage: 0,
-		isInARoom: false
+		isInARoom: false,
+		unique: true
 	},
 	8: {
 		name: "odd coin",
@@ -560,7 +583,8 @@ window.itemLibrary = {
 		condition: -1,
 		weapon: false,
 		damage: 0,
-		isInARoom: false
+		isInARoom: false,
+		unique: true
 	},
 	9: {
 		name: "syringe",
@@ -568,14 +592,15 @@ window.itemLibrary = {
 		use: 	[
 					["default", function() {player.equip(itemLibrary[9])}],
 					["player", function() {
-						writeLine("You gore yourself with the sickening point of the contaminated needle. A purple stream of blood pumps out of the wound - a messy job you've made of it. But you thumb the plunger all the same, squeezing the last bit of... whatever it was... into your bloodstream. <p> Your heart begins to surge with adrenaline. Is it excitement? Or is the substance working itself through your system? Either way, you're bleeding pretty badly...");
+						writeLine("You gore yourself with the sickening point of the contaminated needle. A purple stream of blood pumps out of the wound - a messy job you've made of it. But you thumb the plunger all the same, squeezing the last bit of... whatever it was... into your bloodstream. \n Your heart begins to surge with adrenaline. Is it excitement? Or is the substance working itself through your system? Either way, you're bleeding pretty badly...");
 						player.bleeding = true;
 					}]
 				],
 		condition: 5,
 		weapon: true,
 		damage: 6,
-		isInARoom: false
+		isInARoom: false,
+		unique: true
 	},
 	10: {
 		name: "rocking-horse",
@@ -593,6 +618,152 @@ window.itemLibrary = {
 		condition: 3,
 		weapon: false,
 		damage: 0,
-		isInARoom: false
-	}
+		isInARoom: false,
+		unique: true
+	},
+	11: {
+		name: "zombie",
+		desc: "A half-dead slobbering thing, which occasionally mumurs. It can't weigh more than 50 pounds damp. You might even pick it up, if you really wanted to...",
+		use: 	[
+					["default", function() {
+						writeLine("You doubt the poor vegetable could be feasibly used for anything at all.");
+					}],
+					["rusty pipe", function() {player.kill(itemLibrary[11], itemLibrary[6])}],
+					["plank", function() {player.kill(itemLibrary[11], itemLibrary[0])}],
+					["odd coin", function() {writeLine("Its vacant eyes seem to focus for a moment on the bizarre glint of the coin's unknown metal, but... nothing.")}],
+					["player", function() {writeLine("You attempt to speak with it, but the limp wretch can only drool.")}]
+				],
+		condition: 5,
+		weapon: false,
+		damage: 0,
+		isInARoom: true,
+		unique: true
+	},
+	12: {
+		name: "pebble",
+		desc: "A tiny rock.",
+		use: 	[
+					["default", function() {
+						writeLine("You can't fathom how you could possibly use a pebble.");
+					}],
+					["player", function() {
+						writeLine("Well, if you insist. \n You eat the pebble. You're not dumb enough to chew it, but you cough as it's on the way down.");
+					}]
+				],
+		condition: -1,
+		weapon: false,
+		damage: 0,
+		isInARoom: false,
+		unique: false
+	},
+	13: new ProtoItem(
+		"screwdriver",
+		"A flathead screwdriver, slightly bent. The grip has some grease on it.")
+};
+
+// BEGIN ROOMS SECTION!
+
+// // master map of rooms
+// var room = {
+// 	"x0y1": {
+// 		desc: "this is room #01. welcome!",
+// 		items: ["puppy", "machete", "urn of ashes"]
+//  }
+// };
+
+// starting empty blueprint
+window.blueprint = [];
+
+// makes a complex store array of arbitrary size (note: currently only for square stores)
+var drawBlueprint = function(xSize, ySize) {
+	for (var x = 0; x < xSize; x++) {
+		window.blueprint[x] = [];
+		for (var y = 0; y < ySize; y++) {
+			window.blueprint[x][y] = new Room(); // gives each room the default attributes 
+			var count = 0;
+			for (var k in RoomLibrary) if (RoomLibrary.hasOwnProperty(k)) ++count; // counts the number of unique rooms 
+			var uniqueRoomChance = 0.3; 
+			var randUniqRm = RoomLibrary[Math.floor(Math.random()*count)];
+			var theArbiter = Math.random();
+			
+			if (theArbiter < uniqueRoomChance && theArbiter < randUniqRm.prob && randUniqRm.exists === false) {
+				randUniqRm.exists = true;
+				blueprint[x][y]	= randUniqRm;
+			} else {
+				blueprint[x][y].desc = "Room #"+x+", "+y;	// current, boring default description
+				if ((x === 0 && y === 1) || (x === 0 && y === 0)) { // the first two rooms shouldn't be walls...
+					blueprint[x][y].isAWall = false;
+					blueprint[x][y].items = []; // no items in the first two rooms
+				} else {
+					populateItems(blueprint[x][y]); 
+				}; 
+				if (!!Math.floor(4*Math.random())) {
+					blueprint[x][y].isAWall = false;
+				} else {
+					// room is a wall	
+				};
+			}
+
+			blueprint[x][y].x = x; 
+			blueprint[x][y].y = y;
+
+		}
+	};
+	return window.blueprint;
+	if (debug) console.log(window.blueprint); else {}
+};
+
+var populateItems = function(room) {
+	room.items = [];
+	if (!!Math.floor(Math.random()*10)) {
+		for (i = 0; i <= Math.floor(Math.random()*10); i++) { // 90% chance to add 1-10 items to a room
+			var totalNumberItems = 0;
+			var count = 0;
+			for (var k in itemLibrary) if (itemLibrary.hasOwnProperty(k)) ++count; // since there's no clean way to find the number of properties in an object, 
+
+			var randomItem = itemLibrary[Math.floor(Math.random()*count)];
+			if (!randomItem.isInARoom)	{ // won't add unique items to rooms if they've already been pushed /// QUIT DOING THAT STUFF WITH THE NO BRACKETS
+				room.items.push(randomItem); // randomly adds i number of items from from itemLibrary
+				if (!randomItem.unique) { 
+					// do nothing
+					// don't set "isInARoom" to true, thereby continuing to populate rooms with it!
+				} else randomItem.isInARoom = true;
+			} else {};
+		}
+	} else {}; 
+};
+
+Room = function(desc, items, actions, isAWall, prob) {
+	this.x = 0;
+	this.y = 0;
+	this.desc = desc;
+	this.items = items;
+	this.actions = actions;
+	this.isAWall = true;
+	this.prob = prob;
+	this.exists = false;
+};
+
+
+// list of unique rooms
+
+kitchen = new Room(
+	"Some kind of machine lays in the center of the room, its wires and entrails cast about on the floor, like carrion. Mercifully, the thing is just a machine... but somehow, the autopsy is none the less disturbing. \n Heaps of trash and discarded food sag on the peeling counters and tabletop. The air burns your lungs as you inhale. A fly slips up your nose and you sneeze violently. The room is thick with the poisonous, hateful squelch of squirming maggots and buzzing flies. A narrow path of linoleum seems to have been carved out of the muck on the floor.",
+	[],
+	[],
+	false,
+	0.05
+);
+
+livingRoom = new Room(
+	"Between the teetering piles of garbage and shelves full of decaying food, something like a light is shining between the cracks. Looking closer, it's making noise, too. A television? And across from it... dear God... something barely human, flaccid on a festering armchair, its skin flowing off its limbs like sickly rubber, gaping numbly at the antique television set with dying eyes...",
+	[itemLibrary[11]],
+	[],
+	false,
+	0.05
+);
+
+RoomLibrary = {
+	0: kitchen,
+	1: livingRoom
 };

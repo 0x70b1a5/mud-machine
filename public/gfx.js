@@ -12,7 +12,7 @@ drawMap = function() {
 				carto.push("<span id='player-icon'>/\\</span>");
 			} else {
 				if (blueprint[x] && blueprint[x][y]) {
-					blueprint[x][y].isAWall ? carto.push("||") : carto.push("__");
+					blueprint[x][y].isAWall ? carto.push("||") : carto.push("&nbsp;&nbsp;");
 				} else {
 					carto.push("~~");
 				}
